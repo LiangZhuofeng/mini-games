@@ -3,7 +3,7 @@ import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { Player, type Move } from './types'
 import { initBoard, checkWinner, BOARD_SIZE } from './logic'
 import { useGameStore } from '../../stores/game'
-import GameRules from '../common/GameRules.vue'
+import GameModal from '../common/GameModal.vue'
 
 const gameStore = useGameStore()
 const startTime = ref(Date.now())
@@ -88,7 +88,7 @@ const resetGame = () => {
         }}
       </div>
       <div class="header-actions">
-        <button class="rule-btn" @click="showRules = true">规则</button>
+        <button class="rules-btn" @click="showRules = true">规则</button>
         <button class="reset-btn" @click="resetGame">重新开始</button>
       </div>
     </div>
@@ -150,13 +150,12 @@ const resetGame = () => {
       </div>
     </div>
 
-    <!-- Rules Modal -->
-    <GameRules :show="showRules" title="五子棋" @close="showRules = false">
-      <p>1. 五子棋是一种两人对弈的纯策略型棋类游戏。</p>
-      <p>2. 对弈双方各执一色棋子（黑白两色）。</p>
-      <p>3. 空位落子：黑先、白后，交替下子，每次只能下一子。</p>
-      <p>4. 胜利条件：在棋盘的竖线、横线或斜线上形成连续的五个棋子（即五子连珠）的一方为胜。</p>
-    </GameRules>
+    <GameModal :show="showRules" title="五子棋 规则" @close="showRules = false">
+      <p>1. 两人分别使用黑白两色的棋子，下在棋盘直线与横线的交叉点上。</p>
+      <p>2. 黑子先行，双方轮流落子。</p>
+      <p>3. 游戏目标：任何一方先在横线、竖线或斜线上形成连续的五个棋子（五子连珠）即可获胜。</p>
+      <p>4. 棋盘为 15x15 的标准规格。</p>
+    </GameModal>
   </div>
 </template>
 
@@ -183,9 +182,9 @@ const resetGame = () => {
   gap: 12px;
 }
 
-.rule-btn {
+.rules-btn {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.05);
   color: #333;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -193,8 +192,8 @@ const resetGame = () => {
   transition: all 0.2s;
 }
 
-.rule-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
+.rules-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .turn-indicator {
@@ -202,16 +201,6 @@ const resetGame = () => {
   border-radius: 20px;
   font-weight: bold;
   color: white;
-}
-
-.turn-indicator.black {
-  background: #333;
-}
-
-.turn-indicator.white {
-  background: #eee;
-  color: #333;
-  border: 1px solid #ccc;
 }
 
 .reset-btn {
@@ -303,14 +292,6 @@ const resetGame = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.piece.black {
-  background: radial-gradient(circle at 30% 30%, #555, #000);
-}
-
-.piece.white {
-  background: radial-gradient(circle at 30% 30%, #fff, #ccc);
 }
 
 .last-move-dot {

@@ -2,6 +2,9 @@
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { Player, PieceType, type Piece } from './types'
 import { initBoard, ROWS, COLS, isValidMove, isRiver, isTrap, isDen } from './logic'
+import GameModal from '../common/GameModal.vue'
+
+const showRules = ref(false)
 
 const state = reactive({
   board: initBoard(),
@@ -109,7 +112,10 @@ const resetGame = () => {
             : `当前回合: ${state.turn === Player.BLUE ? '蓝方' : '红方'}`
         }}
       </div>
-      <button class="reset-btn" @click="resetGame">重新开始</button>
+      <div class="header-actions">
+        <button class="rules-btn" @click="showRules = true">规则</button>
+        <button class="reset-btn" @click="resetGame">重新开始</button>
+      </div>
     </div>
 
     <div class="board-wrapper" :style="{ transform: `scale(${scale})` }">
@@ -149,6 +155,14 @@ const resetGame = () => {
         </div>
       </div>
     </div>
+
+    <GameModal :show="showRules" title="斗兽棋 规则" @close="showRules = false">
+      <p>1. <b>等级排序</b>：象(8) > 狮(7) > 虎(6) > 豹(5) > 狼(4) > 狗(3) > 猫(2) > 鼠(1)。</p>
+      <p>2. <b>特殊吃法</b>：鼠可以吃象；鼠在水里不能吃岸上的象，反之亦然。</p>
+      <p>3. <b>河流</b>：只有鼠可以进入河流。狮、虎可以纵向或横向跳过河流，若河中有鼠则不能跳。</p>
+      <p>4. <b>陷阱</b>：任何棋子进入对方陷阱后，等级降为0，可被对方任何棋子吃掉。</p>
+      <p>5. <b>兽穴</b>：棋子进入对方兽穴即可获胜。己方棋子不能进入己方兽穴。</p>
+    </GameModal>
   </div>
 </template>
 
@@ -169,6 +183,26 @@ const resetGame = () => {
   max-width: 490px;
   align-items: center;
 }
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.rules-btn {
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rules-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
 .turn-indicator {
   padding: 8px 16px;
   border-radius: 20px;

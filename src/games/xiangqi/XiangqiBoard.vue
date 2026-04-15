@@ -5,14 +5,14 @@ import type { GameState, Move } from './types'
 import { initBoard, isValidMove, isKingFacing, isCheck } from './logic'
 import XiangqiPiece from './XiangqiPiece.vue'
 import { useGameStore } from '../../stores/game'
-import GameRules from '../common/GameRules.vue'
+import GameModal from '../common/GameModal.vue'
 
 const gameStore = useGameStore()
 const startTime = ref(Date.now())
 
 const isCheckActive = ref(false)
-const showCheckMessage = ref('')
 const showRules = ref(false)
+const showCheckMessage = ref('')
 
 // Sound effects
 const moveSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3') // Simple click/move sound
@@ -182,7 +182,7 @@ const resetGame = () => {
           }}
         </div>
         <div class="header-actions">
-          <button class="rule-btn" @click="showRules = true">规则</button>
+          <button class="rules-btn" @click="showRules = true">规则</button>
           <button class="reset-btn" @click="resetGame">重新开始</button>
         </div>
       </div>
@@ -275,21 +275,15 @@ const resetGame = () => {
       </div>
     </div>
 
-    <!-- Rules Modal -->
-    <GameRules :show="showRules" title="中国象棋" @close="showRules = false">
-      <p>1. 棋子走法：</p>
-      <ul>
-        <li><strong>帅/将</strong>：九宫格内，每次一步，横竖走。</li>
-        <li><strong>仕/士</strong>：九宫格内，每次一步，斜走。</li>
-        <li><strong>相/象</strong>：田字走（2x2），不能过河，有“塞象眼”限制。</li>
-        <li><strong>傌/馬</strong>：日字走（1x2），有“蹩马腿”限制。</li>
-        <li><strong>俥/車</strong>：横竖直线走，步数不限。</li>
-        <li><strong>炮/砲</strong>：直线走，吃子需跳过一个棋子。</li>
-        <li><strong>兵/卒</strong>：过河前只能前进一步，过河后可横走。</li>
-      </ul>
-      <p>2. 特殊规则：两帅不能在同一直线上直接对面（白脸将）。</p>
-      <p>3. 胜利条件：吃掉对方的帅/将。</p>
-    </GameRules>
+    <GameModal :show="showRules" title="中国象棋 规则" @close="showRules = false">
+      <p>1. <b>马</b>：走“日”字，若中间有棋子则“蹩马腿”。</p>
+      <p>2. <b>象/相</b>：走“田”字，不能过河，若中间有棋子则“塞象眼”。</p>
+      <p>3. <b>车/俥</b>：直线行走，步数不限。</p>
+      <p>4. <b>炮/砲</b>：移动同车，吃子需跳过一个棋子（炮台）。</p>
+      <p>5. <b>士/仕</b>：在九宫格内沿对角线走一步。</p>
+      <p>6. <b>将/帅</b>：在九宫格内直线走一步，不能与对方将帅直接对面（白脸将）。</p>
+      <p>7. <b>兵/卒</b>：过河前只能前行，过河后可左右移动，不可后退。</p>
+    </GameModal>
   </div>
 </template>
 
@@ -457,19 +451,19 @@ const resetGame = () => {
   gap: 12px;
 }
 
-.rule-btn {
+.rules-btn {
   padding: 8px 16px;
   font-size: 16px;
-  background: #646cff;
-  color: white;
-  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.rule-btn:hover {
-  background: #535bf2;
+.rules-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .turn-indicator {

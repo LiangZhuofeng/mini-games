@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useGameStore } from '../../stores/game'
-import GameRules from '../common/GameRules.vue'
+import GameModal from '../common/GameModal.vue'
 import {
   DIFFICULTIES,
   createBoard,
@@ -29,8 +29,6 @@ const state = reactive({
 const gameStore = useGameStore()
 
 const showRules = ref(false)
-const showDifficultyConfirm = ref(false)
-const pendingDifficulty = ref<Difficulty | null>(null)
 
 let timerId: number | null = null
 
@@ -44,32 +42,15 @@ const statusText = computed(() => {
 
 const boardStyle = computed(() => ({
   gridTemplateColumns: `repeat(${state.difficulty.cols}, minmax(0, 1fr))`,
-  gap: state.difficulty.id === 'beginner' || state.difficulty.id === 'intermediate' ? '0px' : '4px',
+  gap: state.difficulty.id === 'expert' ? '4px' : '0px',
 }))
 
-function onDifficultyClick(difficulty: Difficulty) {
-  if (state.started && state.status === 'playing') {
-    pendingDifficulty.value = difficulty
-    showDifficultyConfirm.value = true
-  } else {
-    setupGame(difficulty)
-  }
-}
-
-function confirmDifficultyChange() {
-  if (pendingDifficulty.value) {
-    setupGame(pendingDifficulty.value)
-    pendingDifficulty.value = null
-  }
-  showDifficultyConfirm.value = false
-}
-
-function cancelDifficultyChange() {
-  pendingDifficulty.value = null
-  showDifficultyConfirm.value = false
-}
-
 function setupGame(difficulty: Difficulty) {
+  if (state.started && state.status === 'playing') {
+    if (!window.confirm('当前游戏正在进行中，切换难度将重置进度，确定切换吗？')) {
+      return
+    }
+  }
   clearTimer()
   state.difficulty = difficulty
   state.board = createBoard(difficulty.rows, difficulty.cols)
@@ -208,7 +189,7 @@ onBeforeUnmount(() => {
           <p class="status-copy">{{ statusText }}</p>
         </div>
         <div class="header-actions">
-          <button class="rule-btn" @click="showRules = true">规则</button>
+          <button class="rules-btn" @click="showRules = true">游戏规则</button>
           <button class="reset-btn" @click="setupGame(state.difficulty)">重新开局</button>
         </div>
       </div>
@@ -219,7 +200,7 @@ onBeforeUnmount(() => {
           :key="difficulty.id"
           class="difficulty-btn"
           :class="{ active: state.difficulty.id === difficulty.id }"
-          @click="onDifficultyClick(difficulty)"
+          @click="setupGame(difficulty)"
         >
           {{ difficulty.label }}
         </button>
@@ -266,32 +247,14 @@ onBeforeUnmount(() => {
       <p class="hint">操作提示：左键翻开格子，右键标记地雷。首击安全，周围九宫格不会布雷。</p>
     </section>
 
-    <!-- Rules Modal -->
-    <GameRules :show="showRules" title="扫雷" @close="showRules = false">
-      <p>1. 棋盘上随机分布着一定数量的地雷。</p>
-      <p>2. 点击格子可以翻开它：</p>
-      <ul>
-        <li>如果是数字，表示该格子周围 8 个方向相邻格子的地雷总数。</li>
-        <li>如果是空白（0），会自动翻开周围相邻的空格。</li>
-        <li>如果是地雷，则游戏失败。</li>
-      </ul>
-      <p>3. 鼠标右键可以标记旗帜，表示你认为该处有雷。</p>
-      <p>4. 找出所有非地雷格子即为胜利。</p>
-    </GameRules>
-
-    <!-- Difficulty Change Confirmation -->
-    <Transition name="fade">
-      <div v-if="showDifficultyConfirm" class="confirm-overlay">
-        <div class="confirm-modal">
-          <h3>切换难度</h3>
-          <p>当前游戏正在进行中，切换难度将重置当前进度。确定要继续吗？</p>
-          <div class="confirm-footer">
-            <button class="cancel-btn" @click="cancelDifficultyChange">取消</button>
-            <button class="confirm-btn" @click="confirmDifficultyChange">确定切换</button>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <GameModal :show="showRules" title="扫雷 规则" @close="showRules = false">
+      <p>1. 游戏目标是找出所有没有地雷的格子，而不踩到地雷。</p>
+      <p>2. 点击格子可以翻开它。如果翻开的是数字，该数字表示周围8个格子中地雷的数量。</p>
+      <p>3. 如果翻开的是空格，则会自动翻开周围相连的所有空格。</p>
+      <p>4. 如果翻开的是地雷，游戏结束。</p>
+      <p>5. 您可以使用鼠标右键在认为有雷的地方插上旗帜（🚩）作为标记。</p>
+      <p>6. 找出所有非雷格子后即可获胜。</p>
+    </GameModal>
   </div>
 </template>
 
@@ -328,18 +291,18 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.rule-btn {
+.rules-btn {
   padding: 12px 18px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
   font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.rule-btn:hover {
+.rules-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
@@ -500,82 +463,6 @@ h2 {
   margin: 0;
   color: #cbd5e1;
   font-size: 14px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.confirm-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  backdrop-filter: blur(4px);
-}
-
-.confirm-modal {
-  background: white;
-  padding: 32px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-}
-
-.confirm-modal h3 {
-  margin: 0 0 16px;
-  color: #1e293b;
-  font-size: 22px;
-}
-
-.confirm-modal p {
-  color: #64748b;
-  margin-bottom: 24px;
-  line-height: 1.6;
-}
-
-.confirm-footer {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.cancel-btn {
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #64748b;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.confirm-btn {
-  padding: 10px 20px;
-  border-radius: 10px;
-  border: none;
-  background: #f43f5e;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.confirm-btn:hover {
-  background: #e11d48;
 }
 
 @media (max-width: 900px) {

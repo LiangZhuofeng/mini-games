@@ -2,6 +2,9 @@
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { Player, type Move } from './types'
 import { initBoard, BOARD_SIZE, getCapturedPieces, isSuicide } from './logic'
+import GameModal from '../common/GameModal.vue'
+
+const showRules = ref(false)
 
 const state = reactive({
   board: initBoard(),
@@ -96,7 +99,10 @@ const resetGame = () => {
       <div class="turn-indicator" :class="state.turn">
         当前回合: {{ state.turn === Player.BLACK ? '黑棋' : '白棋' }}
       </div>
-      <button class="reset-btn" @click="resetGame">重新开始</button>
+      <div class="header-actions">
+        <button class="rules-btn" @click="showRules = true">规则</button>
+        <button class="reset-btn" @click="resetGame">重新开始</button>
+      </div>
     </div>
 
     <div class="board-wrapper" :style="{ transform: `scale(${scale})` }">
@@ -150,6 +156,18 @@ const resetGame = () => {
         </div>
       </div>
     </div>
+
+    <GameModal :show="showRules" title="围棋 规则" @close="showRules = false">
+      <p>1. <b>下子</b>：黑子先行，双方交替落子在交叉点上。落子后不可移动。</p>
+      <p>
+        2. <b>气</b>：棋子在棋盘上直线相邻的空白交叉点。若棋子没有“气”，则被“提子”从棋盘上移除。
+      </p>
+      <p>3. <b>提子</b>：落子后，若对方棋子完全失去“气”，则将其移出棋盘。</p>
+      <p>
+        4. <b>禁着点</b>：不能落在使己方棋子立即完全失去“气”且不能提掉对方棋子的位置（自杀手）。
+      </p>
+      <p>5. <b>劫</b>：禁止在某些情况下立即回提，需在别处落一子后方可回提。</p>
+    </GameModal>
   </div>
 </template>
 
@@ -169,6 +187,25 @@ const resetGame = () => {
   width: 100%;
   max-width: 684px;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.rules-btn {
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rules-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .score-board {

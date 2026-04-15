@@ -2,6 +2,9 @@
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { Player, PieceType, type Piece } from './types'
 import { initBoard, ROWS, COLS, isValidMove, isCamp, isRailroad, resolveCombat } from './logic'
+import GameModal from '../common/GameModal.vue'
+
+const showRules = ref(false)
 
 const state = reactive({
   board: initBoard(),
@@ -124,7 +127,10 @@ const resetGame = () => {
             : `当前回合: ${state.turn === Player.BLUE ? '蓝军' : '红军'}`
         }}
       </div>
-      <button class="reset-btn" @click="resetGame">重新开始</button>
+      <div class="header-actions">
+        <button class="rules-btn" @click="showRules = true">规则</button>
+        <button class="reset-btn" @click="resetGame">重新开始</button>
+      </div>
     </div>
 
     <div class="board-wrapper" :style="{ transform: `scale(${scale})` }">
@@ -171,6 +177,25 @@ const resetGame = () => {
         </div>
       </div>
     </div>
+
+    <GameModal :show="showRules" title="军棋 规则" @close="showRules = false">
+      <p>1. <b>等级排序</b>：司令 > 军长 > 师长 > 旅长 > 团长 > 营长 > 连长 > 排长 > 工兵。</p>
+      <div>
+        <p>2. <b>特殊棋子</b>：</p>
+        <ul>
+          <li><b>炸弹</b>：与任何棋子相撞，两者同归于尽。</li>
+          <li><b>地雷</b>：只有工兵可以排除，炸弹相撞同归于尽，其他棋子相撞均被地雷炸死。</li>
+          <li><b>军旗</b>：被对方夺取或己方棋子全部被吃掉，则输掉比赛。</li>
+        </ul>
+      </div>
+      <div>
+        <p>3. <b>特殊地形</b>：</p>
+        <ul>
+          <li><b>行营</b>：棋子在行营内不能被攻击。</li>
+          <li><b>铁路线</b>：工兵可沿线走任意距离并转弯，其他棋子只能沿直线走任意距离。</li>
+        </ul>
+      </div>
+    </GameModal>
   </div>
 </template>
 
@@ -190,6 +215,26 @@ const resetGame = () => {
   max-width: 400px;
   align-items: center;
 }
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.rules-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rules-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .turn-indicator {
   padding: 8px 16px;
   border-radius: 20px;
